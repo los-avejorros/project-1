@@ -283,38 +283,42 @@ public class LispList<T> implements Expression<T> {
   }
 
   private Object handleOperation(Environment env, String operator, Queue<Object> operands) {
-    if (operands.isEmpty()) {
-      throw new RuntimeException("Faltan operandos para la operación: " + operator);
+    // Evaluar primero todos los operandos
+    Queue<Object> evaluatedOperands = new LinkedList<>();
+    for (Object operand : operands) {
+        evaluatedOperands.add(operand instanceof Expression ? 
+                            ((Expression<?>)operand).evaluate(env) : operand);
     }
-
-    // Verificar si el operador es una función definida
+    
+    // Manejar funciones definidas
     try {
-      LispFunction<?> function = env.getFunction(operator);
-      // Si es una función definida, llamarla con los operandos
-      return callFunction(env, function, operands);
+        LispFunction<?> function = env.getFunction(operator);
+        return callFunction(env, function, evaluatedOperands);
     } catch (RuntimeException e) {
-      // Si no es una función definida, aplicar la operación aritmética
-      return applyArithmeticOperation(operands, operator);
+        // Operaciones aritméticas
+        return applyArithmeticOperation(new LinkedList<>(evaluatedOperands), operator);
     }
   }
 
   private Object callFunction(Environment env, LispFunction<?> function, Queue<Object> operands) {
-    // Crear un nuevo entorno local para la función
     Environment localEnv = new Environment();
-
-    // Asignar valores a los parámetros
-    List<String> parameters = function.getParameters();
-    for (String param : parameters) {
-      if (operands.isEmpty()) {
-        throw new RuntimeException("Faltan argumentos para la función: " + param);
-      }
-      Object value = operands.poll();
-      localEnv.defineVariable(param, value);
+    
+    // 1. Copiar todas las funciones del entorno padre
+    localEnv.getFuctions().putAll(env.getFuctions());
+    
+    // 2. Asignar parámetros
+    List<String> params = function.getParameters();
+    if (params.size() != operands.size()) {
+        throw new RuntimeException("Número incorrecto de argumentos");
     }
-
-    // Evaluar el cuerpo de la función en el entorno local
+    
+    for (String param : params) {
+        localEnv.defineVariable(param, operands.poll());
+    }
+    
+    // 3. Evaluar el cuerpo
     return function.getBody().evaluate(localEnv);
-  }
+}
 
   private Object applyArithmeticOperation(Queue<Object> operands, String operator) {
     // Aplicar la operación aritmética
