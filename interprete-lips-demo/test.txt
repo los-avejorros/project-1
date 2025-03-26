@@ -1,15 +1,19 @@
+(SETQ x 20)
+(PRINT x)
+
+(SETQ x (+ 10 (* 3 3) 2 (+ 20 (- 10 5)) ))
+(PRINT x) 
+
+(SETQ a 10)
+(SETQ b 16)
+(SETQ c 5)
+(COND ((>= a b) (COND ((>= a c) (PRINT a)) (T (PRINT c)))) ((>= b c) (PRINT b)) (T (PRINT c)))
+
+(DEFUN cuadrado (x) (* x x))
+(PRINT (cuadrado 5))
+(PRINT (cuadrado 6))
+
+
 (DEFUN factorial (n) (COND ((= n 0) 1) (T (* n (factorial (- n 1))))))
 (PRINT (factorial 5))
-(PRINT (COND ((< 4 5) 1) (T 0)))
-(PRINT (COND ((<= 6 5) 1) (T 0)))
-(PRINT (COND ((>= 6 5) 1) (T 0)))
-(PRINT (COND ((< 4 5) 1) (T 0)))
-(DEFUN suma (x y) (+ x y))
-(PRINT (suma 20 60))
-(PRINT (suma (suma 80 60) 10))
-(SETQ x 9)
-(PRINT x)
-(PRINT (* x (- 2 8)))
-(PRINT (factorial 3))
-(COND ((AND (>= 1 2) (>= 1 3)) (PRINT 1))((AND (>= 2 1) (>= 2 3)) (PRINT 2))(T (PRINT 3)))
-(PRINT (SQRT 9))
+

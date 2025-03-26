@@ -95,7 +95,7 @@ public class ParserLisp {
     // Lista de operadores válidos
     return token.equals("+") || token.equals("-") || token.equals("*") || token.equals("/") ||
            token.equals("<") || token.equals("<=") || token.equals(">") || token.equals(">=") || 
-           token.equals("=") || token.equals("AND") || token.equals("SQRT") ||
+           token.equals("=") || token.equals("AND") || token.equals("SQRT") || token.equals("%") ||
            token.equals("QUOTE") || token.equals("SETQ") || token.equals("COND") ||
            token.equals("DEFUN") || token.equals("ATOM") || token.equals("LIST") ||
            token.equals("EQUAL") || token.equals("CAR") || token.equals("CDR") ||

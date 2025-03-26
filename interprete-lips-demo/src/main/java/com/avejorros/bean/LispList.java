@@ -67,7 +67,9 @@ public class LispList<T> implements Expression<T> {
         case "AND":
           return (T) handleAnd(env, evaluatedOperands); // YA ESTA ESTA FUNCIONALIDAD
         case "SQRT":
-          return (T) handleSqrt(env, evaluatedOperands);
+          return (T) handleSqrt(env, evaluatedOperands); // YA ESTA ESTA FUNCIONALIDAD
+        case "PRINT":
+          return (T) handlePrint(env, evaluatedOperands); // YA ESTA ESTA FUNCIONALIDAD
         case "ATOM":
           return (T) handleAtom(env, evaluatedOperands);
         case "LIST":
@@ -78,8 +80,6 @@ public class LispList<T> implements Expression<T> {
           return (T) handleCar(env, evaluatedOperands);
         case "CDR":
           return (T) handleCdr(env, evaluatedOperands);
-        case "PRINT":
-          return (T) handlePrint(env, evaluatedOperands); // YA ESTA ESTA FUNCIONALIDAD
         default:
           // Operaciones aritméticas o funciones definidas
           return (T) handleOperation(env, operator, evaluatedOperands);
@@ -90,26 +90,26 @@ public class LispList<T> implements Expression<T> {
 
   private Double handleSqrt(Environment env, Queue<Object> operands) {
     if (operands.size() != 1) {
-        throw new RuntimeException("SQRT requiere exactamente un argumento");
+      throw new RuntimeException("SQRT requiere exactamente un argumento");
     }
-    
+
     Object operand = operands.poll();
     Double number;
-    
+
     if (operand instanceof Expression) {
-        number = (Double) ((Expression<?>) operand).evaluate(env);
+      number = (Double) ((Expression<?>) operand).evaluate(env);
     } else if (operand instanceof Number) {
-        number = ((Number) operand).doubleValue();
+      number = ((Number) operand).doubleValue();
     } else {
-        throw new RuntimeException("SQRT requiere un argumento numérico");
+      throw new RuntimeException("SQRT requiere un argumento numérico");
     }
-    
+
     if (number < 0) {
-        throw new RuntimeException("SQRT no puede calcular raíz de número negativo");
+      throw new RuntimeException("SQRT no puede calcular raíz de número negativo");
     }
-    
+
     return Math.sqrt(number);
-}
+  }
 
   private Boolean handleAnd(Environment env, Queue<Object> operands) {
     if (operands.isEmpty()) {
@@ -384,10 +384,10 @@ public class LispList<T> implements Expression<T> {
     // Manejo especial para SQRT (aunque normalmente será una función)
     if (operator.equals("SQRT")) {
       if (left instanceof Number) {
-          return Math.sqrt(((Number) left).doubleValue());
+        return Math.sqrt(((Number) left).doubleValue());
       }
       throw new RuntimeException("SQRT requiere argumento numérico");
-  }
+    }
     if (left instanceof Double && right instanceof Double) {
       double a = (Double) left;
       double b = (Double) right;
