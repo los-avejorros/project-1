@@ -61,9 +61,13 @@ public class LispList<T> implements Expression<T> {
         case "SETQ":
           return (T) handleSetq(env, evaluatedOperands); // YA ESTA ESTA FUNCIONALIDAD
         case "COND":
-          return (T) handleCond(env, evaluatedOperands);
+          return (T) handleCond(env, evaluatedOperands); // YA ESTA ESTA FUNCIONALIDAD
         case "DEFUN":
           return (T) handleDefun(env, evaluatedOperands); // YA ESTA ESTA FUNCIONALIDAD
+        case "AND":
+          return (T) handleAnd(env, evaluatedOperands); // YA ESTA ESTA FUNCIONALIDAD
+        case "SQRT":
+          return (T) handleSqrt(env, evaluatedOperands);
         case "ATOM":
           return (T) handleAtom(env, evaluatedOperands);
         case "LIST":
@@ -82,6 +86,53 @@ public class LispList<T> implements Expression<T> {
       }
     }
     throw new RuntimeException("Expresión no válida: el primer elemento no es un símbolo");
+  }
+
+  private Double handleSqrt(Environment env, Queue<Object> operands) {
+    if (operands.size() != 1) {
+        throw new RuntimeException("SQRT requiere exactamente un argumento");
+    }
+    
+    Object operand = operands.poll();
+    Double number;
+    
+    if (operand instanceof Expression) {
+        number = (Double) ((Expression<?>) operand).evaluate(env);
+    } else if (operand instanceof Number) {
+        number = ((Number) operand).doubleValue();
+    } else {
+        throw new RuntimeException("SQRT requiere un argumento numérico");
+    }
+    
+    if (number < 0) {
+        throw new RuntimeException("SQRT no puede calcular raíz de número negativo");
+    }
+    
+    return Math.sqrt(number);
+}
+
+  private Boolean handleAnd(Environment env, Queue<Object> operands) {
+    if (operands.isEmpty()) {
+      return true; // AND sin argumentos devuelve true (comportamiento estándar en LISP)
+    }
+
+    while (!operands.isEmpty()) {
+      Object current = operands.poll();
+      Boolean result;
+
+      if (current instanceof Expression) {
+        result = (Boolean) ((Expression<?>) current).evaluate(env);
+      } else {
+        result = (Boolean) current;
+      }
+
+      // Si encontramos un false, devolvemos false inmediatamente
+      if (!result) {
+        return false;
+      }
+    }
+
+    return true; // Todos los operandos fueron true
   }
 
   private Object handleSetq(Environment env, Queue<?> operands) {
@@ -286,39 +337,38 @@ public class LispList<T> implements Expression<T> {
     // Evaluar primero todos los operandos
     Queue<Object> evaluatedOperands = new LinkedList<>();
     for (Object operand : operands) {
-        evaluatedOperands.add(operand instanceof Expression ? 
-                            ((Expression<?>)operand).evaluate(env) : operand);
+      evaluatedOperands.add(operand instanceof Expression ? ((Expression<?>) operand).evaluate(env) : operand);
     }
-    
+
     // Manejar funciones definidas
     try {
-        LispFunction<?> function = env.getFunction(operator);
-        return callFunction(env, function, evaluatedOperands);
+      LispFunction<?> function = env.getFunction(operator);
+      return callFunction(env, function, evaluatedOperands);
     } catch (RuntimeException e) {
-        // Operaciones aritméticas
-        return applyArithmeticOperation(new LinkedList<>(evaluatedOperands), operator);
+      // Operaciones aritméticas
+      return applyArithmeticOperation(new LinkedList<>(evaluatedOperands), operator);
     }
   }
 
   private Object callFunction(Environment env, LispFunction<?> function, Queue<Object> operands) {
     Environment localEnv = new Environment();
-    
+
     // 1. Copiar todas las funciones del entorno padre
     localEnv.getFuctions().putAll(env.getFuctions());
-    
+
     // 2. Asignar parámetros
     List<String> params = function.getParameters();
     if (params.size() != operands.size()) {
-        throw new RuntimeException("Número incorrecto de argumentos");
+      throw new RuntimeException("Número incorrecto de argumentos");
     }
-    
+
     for (String param : params) {
-        localEnv.defineVariable(param, operands.poll());
+      localEnv.defineVariable(param, operands.poll());
     }
-    
+
     // 3. Evaluar el cuerpo
     return function.getBody().evaluate(localEnv);
-}
+  }
 
   private Object applyArithmeticOperation(Queue<Object> operands, String operator) {
     // Aplicar la operación aritmética
@@ -331,6 +381,13 @@ public class LispList<T> implements Expression<T> {
   }
 
   private Object applyOperation(Object left, Object right, String operator) {
+    // Manejo especial para SQRT (aunque normalmente será una función)
+    if (operator.equals("SQRT")) {
+      if (left instanceof Number) {
+          return Math.sqrt(((Number) left).doubleValue());
+      }
+      throw new RuntimeException("SQRT requiere argumento numérico");
+  }
     if (left instanceof Double && right instanceof Double) {
       double a = (Double) left;
       double b = (Double) right;
@@ -355,6 +412,8 @@ public class LispList<T> implements Expression<T> {
           return a >= b;
         case "=":
           return a == b;
+        case "AND":
+          return (boolean) left && (boolean) right;
         default:
           throw new RuntimeException("Operación no soportada: " + operator);
       }

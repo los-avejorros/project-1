@@ -11,3 +11,5 @@
 (PRINT x)
 (PRINT (* x (- 2 8)))
 (PRINT (factorial 3))
+(COND ((AND (>= 1 2) (>= 1 3)) (PRINT 1))((AND (>= 2 1) (>= 2 3)) (PRINT 2))(T (PRINT 3)))
+(PRINT (SQRT 9))
