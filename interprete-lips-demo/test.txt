@@ -10,3 +10,4 @@
 (SETQ x 9)
 (PRINT x)
 (PRINT (* x (- 2 8)))
+(PRINT (factorial 3))
